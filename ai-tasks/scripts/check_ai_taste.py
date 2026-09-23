@@ -4,7 +4,8 @@
 
 用途：检出表层机检（破折号/省略号/禁用词）抓不到的深层AI指纹。
       含①事后全知旁白 ②对偶回环 ③数字金句模板 ④群像列举 ⑤要是X要是不X
-      ⑥昨天今天对照 ⑦近距离重复片段 ⑧「没人X／谁都X」群体反应模板
+      ⑥昨天今天对照 ⑦近距离重复片段 ⑧「没人X／谁都X／静了几秒」群体反应模板
+      ⑨口癖节拍器（「两秒」停顿／「X个字」计数／「笑了笑」）⑩叙述句首「那」
       ＋段落节奏（天花板/上限/标准差）与废笔启发式。
 用法：python ai-tasks/scripts/check_ai_taste.py 正文/卷一/第01章.txt [更多章...]
 
@@ -51,7 +52,18 @@ REPEAT_N, REPEAT_WIN, REPEAT_HARD = 6, 1200, 120
 
 # ⑧ 「没人X／谁都X」群体反应模板：真人换着写，模型复读同一壳子
 #    实证：五、六章合计6处「没人敢接话/没人答得上来×2/没人接茬/没人接话」。
-NOBODY = r'(没人(敢)?(接话|接茬|答得上来|吭声|说话|应)|谁也没(人)?接|谁都知道|谁也不敢)'
+NOBODY = r'(没人(敢)?(接话|接茬|答得上来|吭声|说话|应)|谁也没(人)?接|谁都知道|谁也不敢|静了[一两几]?[秒拍下]|静了几秒|静得反常|安静下来|鸦雀无声|一点声音都没有|谁也没(说话|明说|抬头|看他|吭声))'
+
+# ⑨ 口癖节拍器（R35 实证：十章「两秒/几秒/半秒」32处、「X个字」计数27处且数错一处、「笑了笑」8处）
+#    每章各≤2，超额报 WARN；计数类还须人工数对
+TICS = [
+    (r'(?<![十百])[一两几半]秒', 'tic-seconds', '「两秒/几秒/半秒」式计时停顿'),
+    (r'[两三四五六七八九十]个字', 'tic-charcount', '「X个字」式计数（引号内字数须数对）'),
+    (r'笑了笑', 'tic-smile', '「笑了笑」式万能反应'),
+]
+
+# ⑩ 叙述句首「那」（§五-15；对白内口语指示代词放行，故先剥掉引号内文字）
+NA_START = r'(^|[。！？；])\s*那'
 
 def analyze(path):
     raw = io.open(path, encoding='utf-8').read()
@@ -138,6 +150,22 @@ def analyze(path):
             f'「没人X／谁都X」群体反应模板{len(nb)}处（'
             + '、'.join(f'第{i}段{s}' for i, s in nb)
             + '）：一章至多2处，其余改写成某个具体的人的具体动作。'))
+
+    # --- 口癖节拍器（⑨） ---
+    for pat, code, name in TICS:
+        hits = [(i, m.group(0)) for i, p in enumerate(body, 1) for m in re.finditer(pat, p)]
+        if len(hits) > 2:
+            findings.append(('WARN', code,
+                f'{name}{len(hits)}处（' + '、'.join(f'第{i}段{s}' for i, s in hits)
+                + '）：每章至多2处，余者改成具体动作或直接删。'))
+
+    # --- 叙述句首「那」（⑩） ---
+    for i, p in enumerate(body, 1):
+        narr = re.sub(r'“[^”]*”', '', p)
+        for m in re.finditer(NA_START, narr):
+            s = narr[m.end()-1:m.end()+8]
+            findings.append(('BLOCK', 'na-start',
+                f'第{i}段「{s}」：叙述句以「那」开头（§五-15）。换主语或并入上句。'))
 
     # --- 金句模板复用 ---
     if len(epigram_hits) >= 2:
