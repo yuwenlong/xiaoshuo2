@@ -48,6 +48,8 @@ for n in sys.argv[1:]:
     hit('③ 行首那', r'^\s*那')
     for name, pat in EXTRA:
         hit(name, pat)
+    # 翻案变体「不是A，是B」（省掉而）：口语里也有正常用法，列出来人工裁，不计硬项（58-62 审查轮漏网补）
+    hit('翻案变体 不是A，是B', r'不是[^。！？，“”]{1,14}，(是|就是)[^。！？]', hard=False)
     # ④ 对话行连续无空行
     ls = t.split('\n')
     c4 = sum(1 for a, b in zip(ls, ls[1:]) if a.strip() and b.strip())
