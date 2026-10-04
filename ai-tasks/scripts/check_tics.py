@@ -35,6 +35,19 @@ def main() -> int:
             if flag:
                 rc = 1
             out.append(f'{name}{len(ms)}{flag}({",".join(ms)})')
+        # 另两类（《写作说明》§五-16⑦之⑥⑦；叙述层＝剥掉引号内对白）
+        narr = re.sub(r'“[^”]*”', '', body)
+        kchars = max(1, len(re.sub(r'\s', '', body))) / 1000
+        light = [m.group(0) for m in re.finditer(r'了(?:[一两三几半])?[下阵圈道声眼口气会]', narr)]
+        flag = '!' if (len(light) >= 5 and len(light) / kchars >= 6) else ''
+        if flag:
+            rc = 1
+        out.append(f'轻补语{len(light)}({len(light) / kchars:.1f}/千字){flag}')
+        neg = [m.group(0) for m in re.finditer(r'(?:没有|没|不)[^，。！？；\n]{1,10}[，；]\s*[^，。！？；\n]{0,6}?也(?:没有|没|不)', narr)]
+        flag = '!' if len(neg) > 2 else ''
+        if flag:
+            rc = 1
+        out.append(f'否定对偶{len(neg)}{flag}({",".join(neg)})')
         print(f'第{n}章 ' + ' | '.join(out))
     print(f'TICS_RC {rc}')
     return rc

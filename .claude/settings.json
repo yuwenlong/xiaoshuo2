@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/ai-tasks/scripts/prompt_reminder.py\"",
+            "timeout": 15,
+            "statusMessage": "载入写作执行提醒"
+          }
+        ]
+      }
+    ]
+  }
+}
