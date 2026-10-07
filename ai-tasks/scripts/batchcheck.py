@@ -21,6 +21,17 @@ sys.stdout.reconfigure(encoding='utf-8')
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SCRIPTS = os.path.join(ROOT, 'ai-tasks', 'scripts')
 D = os.path.join(ROOT, '正文', '卷一')
+
+
+def chap_path(n):
+    # R32：跨卷后按章号在各卷目录里找，找不到时落到最后一卷目录
+    name = f'第{int(n):02d}章.txt'
+    vols = sorted(glob.glob(os.path.join(ROOT, '正文', '卷*')))
+    for v in vols:
+        p = os.path.join(v, name)
+        if os.path.exists(p):
+            return p
+    return os.path.join(vols[-1] if vols else D, name)
 ENV = dict(os.environ, PYTHONIOENCODING='utf-8')
 RANGES = {'常规': (40, 50), '独处': (25, 101), '双人静场': (40, 60)}
 
@@ -31,7 +42,7 @@ def run(cmd):
 
 
 def chapter_path(n):
-    return os.path.join(D, f'第{int(n):02d}章.txt')
+    return chap_path(n)
 
 
 def review_scripts_dir():
@@ -161,7 +172,7 @@ def main():
                 rc = 1
 
     print('==== ⑪ WARN：新术语／线索热度（人工裁定入卡） ====')
-    files = sorted(glob.glob(os.path.join(D, '第*章.txt')), key=lambda f: int(re.search(r'第(\d+)章', f).group(1)))
+    files = sorted(glob.glob(os.path.join(ROOT, '正文', '卷*', '第*章.txt')), key=lambda f: int(re.search(r'第(\d+)章', f).group(1)))
     seen, last = set(), {}
     core = ['林见夏', '秦深', '袁野', '孙鹏', '小满', '乔漫', '庞坚', '谭师傅', '老方', '杜磊']
     for f in files:

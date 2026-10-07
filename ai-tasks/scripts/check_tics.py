@@ -6,12 +6,24 @@
 不得换成另一种不作为（「没说话」改「没接话」不算改）。写作轮与审查轮用同一张词表。
 命中词不等于病句，逐处人工复核：技术数值（「一秒半」）、引语计数（「十个字」为大纲定句）等可留，理由入控制卡。"""
 import os
+import glob
 import re
 import sys
 
 sys.stdout.reconfigure(encoding='utf-8')
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 D = os.path.join(ROOT, '正文', '卷一')
+
+
+def chap_path(n):
+    # R32：跨卷后按章号在各卷目录里找，找不到时落到最后一卷目录
+    name = f'第{int(n):02d}章.txt'
+    vols = sorted(glob.glob(os.path.join(ROOT, '正文', '卷*')))
+    for v in vols:
+        p = os.path.join(v, name)
+        if os.path.exists(p):
+            return p
+    return os.path.join(vols[-1] if vols else D, name)
 CATS = [
     ('不作为', r'没说话|没吭声|没出声|没接话|没应声|没理|没答|没再说|没人说话|没往下|谁也没|没人接|没急着|没马上|没先说|没再追|没抬头|没再看'),
     ('计时', r'两秒|几秒|半秒|一秒|(?<!后)半晌|看了一会儿|看了好一阵|一会儿|好一阵|半天|[隔过搁等]了一阵|有一口气的工夫|很久|挺长时间|好一会儿'),
@@ -25,7 +37,7 @@ CATS = [
 def main() -> int:
     rc = 0
     for n in sys.argv[1:]:
-        p = os.path.join(D, f'第{int(n):02d}章.txt')
+        p = chap_path(n)
         with open(p, encoding='utf-8') as f:
             body = '\n'.join(f.read().split('\n')[1:])
         out = []

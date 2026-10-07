@@ -3,10 +3,21 @@
 用法：python ai-tasks/scripts/fullcheck.py 48 49 ...（章号）
 硬项：①禁用词序数 ①b破折号 ①c真实地名 ②脸谱化 ③行首那 翻案/省略号/群像/第N序数 ④相邻非空行 ④b check_punct ⑦ check_ai_taste 段长>200或全章无>120段；⑤字数与对话占比只打印，按控制卡章型人工判。
 每项单独打印命中条数；任一硬项≠0 则 ALL_RC=1。"""
-import sys, re, subprocess, statistics, os
+import sys, re, subprocess, statistics, os, glob
 sys.stdout.reconfigure(encoding='utf-8')
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 D = os.path.join(ROOT, '正文', '卷一')
+
+
+def chap_path(n):
+    # R32：跨卷后按章号在各卷目录里找，找不到时落到最后一卷目录
+    name = f'第{int(n):02d}章.txt'
+    vols = sorted(glob.glob(os.path.join(ROOT, '正文', '卷*')))
+    for v in vols:
+        p = os.path.join(v, name)
+        if os.path.exists(p):
+            return p
+    return os.path.join(vols[-1] if vols else D, name)
 BAN = r'然而|此外|总之|因此|综上所述|由此可见|首先|其次|最后|第一|第二|第三|一方面|另一方面|至关重要|显而易见|毫无疑问|必然|绝对|赋能|抓手|闭环|底层逻辑|颗粒度|链路|心智'
 REAL = r'北京|上海|广州|深圳|杭州|大连|中关村|清华|北大|金山|词霸|新浪|奇安信|华图|有道|欧路|海词|香港|广东|广西|福建|浙江|江苏|山东|河北|河南|湖北|湖南|四川|云南|贵州|陕西|山西|辽宁|吉林|黑龙江|安徽|江西|海南|甘肃|青海|宁夏|新疆|西藏|内蒙古|台湾|天津|重庆|济南|武汉|南京|成都|西安|长沙'
 FACE = r'松木香|瑞凤眼|修长的手指|指节|骨节|指腹|薄茧|勾起一丝|深不见底|猪肝色|暂停键|钢针|指甲深陷入掌心|眸色一暗|眼底闪|死寂|沙哑|好整以暇|一抹|一丝|瞬间|混杂'
@@ -57,7 +68,7 @@ def paras(text):
     return [l.strip() for l in lines if l.strip()]
 
 for n in sys.argv[1:]:
-    p = os.path.join(D, f'第{int(n):02d}章.txt')
+    p = chap_path(n)
     t = open(p, encoding='utf-8').read()
     body = '\n'.join(t.split('\n')[1:])
     narr = re.sub(r'“[^”]*”', '', body)  # 叙述层：剥掉引号内文字，行结构不变

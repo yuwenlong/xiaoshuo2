@@ -27,7 +27,7 @@ if '--new' not in argv:
 k = argv.index('--new')
 lo, hi = int(argv[k + 1]), int(argv[k + 2])
 argv = argv[:k] + argv[k + 3:]
-files = sorted(glob.glob(argv[0] if argv else '正文/卷一/第*.txt'))
+files = sorted(glob.glob(argv[0] if argv else '正文/卷*/第*.txt'))
 
 PUNCT = r'[，。！？、“”：；（）《》…\s]'
 

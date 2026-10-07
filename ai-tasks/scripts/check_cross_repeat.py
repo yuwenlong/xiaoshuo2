@@ -22,7 +22,7 @@ if '--new' in argv:
     argv = argv[:k] + argv[k + 3:]
 
 N = 8            # 片段长度阈值
-files = sorted(glob.glob(argv[0] if argv else '正文/卷一/第*.txt'))
+files = sorted(glob.glob(argv[0] if argv else '正文/卷*/第*.txt'))
 occ = defaultdict(list)
 for f in files:
     raw = io.open(f, encoding='utf-8').read()
