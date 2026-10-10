@@ -58,3 +58,60 @@
 5. 照 `ai-tasks/控制卡模板.md` 起卡 → `check_card.py 卡 --pre` CARD_RC 0 → 动笔。
 6. 每章写完即跑 `fullcheck.py 章号` 与 `check_tics.py 章号`，初稿按场次清单写足字数（R52）；改任何一句都重跑。
 7. 交付前 `batchcheck.py 起 止` BATCH_RC 0 → 12b 对表＋16 通读（子代理）＋16b 四维自审＋精读三处＋契约四问 → 回写控制卡、大纲、人物小传、lessons、todo → 呈报，圣阅后再提交。
+
+## 7. story-setup 工具集与本书规则的仲裁
+
+- 下方 story-setup 管理块是工具集的通用说明；`.claude/rules/`、`.claude/hooks/`、`.claude/agents/` 由 story-setup 部署管理。
+- 它们与本文件 1-6 节、《写作说明》冲突时，**一律以本书规则为准**（AGENTS §3 铁序）：正文段间空行分隔、对白后接「某某说。」、叙述层零冒号、章题「第N章 章名」、目录与事实源以 `说明/`、`ai-tasks/控制卡-*`、`正文/卷N/第N章.txt` 为准（本书不用 `{书名}/追踪/` 结构）。
+- `.claude/rules/story-format.md`（段间不空行、冒号引对白、「## 第X章」）与本书格式相反，圣上令撤（2026-10-10）；**重新部署 story-setup 后须再删一次**。
+- 审稿轮可调用已部署的 story-review 四个 reviewer agent；其报告照 §4「审校轮动作链」由主代理逐条裁量。
+
+<!-- story-setup:begin 以下为 story-setup 管理块（《重生2011：从被优化开始》 — 网文写作工具集），重新部署只替换本块 -->
+## Skill 路由表
+
+| 命令 | Skill | 说明 |
+|------|-------|------|
+| `/story-long-write`、`/写长篇` | story-long-write | 长篇网文写作（逐章推进） |
+| `/story-short-write`、`/写短篇` | story-short-write | 短篇网文写作（情绪驱动） |
+| `/story-long-analyze`、`/长篇拆文` | story-long-analyze | 长篇小说深度拆解 |
+| `/story-short-analyze`、`/短篇拆文` | story-short-analyze | 短篇小说拆文分析 |
+| `/story-long-scan`、`/长篇扫榜` | story-long-scan | 长篇小说榜单与市场趋势 |
+| `/story-short-scan`、`/短篇扫榜` | story-short-scan | 短篇小说榜单与情绪风口 |
+| `/story-deslop`、`/去AI味` | story-deslop | 去除 AI 写作痕迹 |
+| `/story-cover`、`/封面` | story-cover | 生成封面图 |
+| `/story-review`、`/审查` | story-review | 多视角对抗式审查 |
+| `/story-import`、`/导入` | story-import | 逆向导入已有小说到项目结构 |
+| `/story`、`/网文` | story | 工具箱路由 · 模糊意图自动分发 |
+| `/story-setup`、`/准备写书` | story-setup | 环境部署 · hooks/rules/agents 一键部署 |
+| `/browser-cdp` | browser-cdp | 浏览器 CDP 工具 |
+
+## 文件结构
+
+- `拆文库/` — 拆文分析结果存放目录
+- `{书名}/正文/` — 长篇小说正文章节
+- `{书名}/设定/` — 角色设定、世界设定
+- `{书名}/大纲/` — 卷纲、细纲
+- `{书名}/追踪/` — `_tracking-state.json` 唯一结构化权威、固定 7 栏 `上下文.md` 续写状态卡、逐章紧凑记录、核心角色独立派生快照、伏笔当前视图、作者与读者双时间线；全部通过追踪工具生成
+- `{书名}/对标/` — 对标作品分析
+
+## 协作规则
+
+Agent 间的协调关系由各 Agent 定义文件的职责边界描述，不需要独立协调规则文件。
+
+## 与作者协作
+
+- 回复和报告用写书的话说（书、章、大纲、设定），不向作者抛脚本名、字段名或状态名；只有报错时才附原始报错。skill 里标着 `<!-- author-report -->` 的模板块只是格式参考，回复时直接输出其中的文字，不带代码块围栏。
+- 作者要求记住、忘掉或确认一条写作习惯/偏好时（如「记住：这本书对话用直角引号」），走 story skill 的「作者记忆」，由它的脚本写入 `.story/作者记忆/`；不要存进编程工具自带的记忆（如 auto memory）。一次性要求直接照做，不记录。
+- 不修改项目里已安装的 skill 文件（`SKILL.md`、`references/`、`scripts/`；story-setup 重新部署时覆盖除外）。skill 脚本报错时停下，把报错和所执行的命令告诉作者，不自行修补绕过。
+
+## Compact 后恢复上下文
+
+此部分在 compact 后自动生效。CLAUDE.md 在每次 compact 后会被重新加载。
+写作中的关键上下文：
+1. 当前写作项目名称和进度
+2. 最近讨论的角色设定变更
+3. 未完成的伏笔列表
+4. 当前章节的情绪/节奏目标
+
+如果存在 {书名}/追踪/上下文.md，compact 后首先读取恢复上下文。
+<!-- story-setup:end -->
